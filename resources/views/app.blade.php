@@ -38,9 +38,12 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx", 'resources/js/bootstrap.js'])
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>
+            @auth
+                <meta name="user-id" content="{{ auth()->id() }}">
+            @endauth
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

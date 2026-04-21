@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { PageProps } from '@inertiajs/core';
+import type { PageProps } from '@inertiajs/core';
 import { useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Pencil, Trash2, Plus, Search, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useRealtimeStock } from '@/hooks/use-realtime-stock';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Dialog,
     DialogContent,
@@ -12,6 +12,8 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -27,8 +29,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Plus, Search, AlertTriangle } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
 
 interface Category {
     id: number;
@@ -81,6 +82,30 @@ export default function ProductsIndex({ products, categories, filters, success, 
     const [showError, setShowError] = useState(error || '');
     const [categoryValue, setCategoryValue] = useState<string>('');
     const [unitValue, setUnitValue] = useState<string>('pcs');
+    const [productsData, setProductsData] = useState<Product[]>(products.data);
+    const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
+
+    const { lastStockEvent, isConnected } = useRealtimeStock();
+    const productsRef = useRef<Product[]>(products.data);
+
+    useEffect(() => {
+        productsRef.current = productsData;
+    }, [productsData]);
+
+    useEffect(() => {
+        if (!lastStockEvent) return;
+
+        setProductsData((prev) =>
+            prev.map((p) =>
+                p.id === lastStockEvent.product_id
+                    ? { ...p, stock: lastStockEvent.stock_remaining }
+                    : p
+            )
+        );
+
+        setHighlightedProductId(lastStockEvent.product_id);
+        setTimeout(() => setHighlightedProductId(null), 1500);
+    }, [lastStockEvent]);
 
     const { data, setData, post, put, delete: destroy, processing, errors } = useForm({
         category_id: '',
@@ -178,11 +203,13 @@ export default function ProductsIndex({ products, categories, filters, success, 
     const toggleLowStock = (value: boolean) => {
         setShowLowStock(value);
         const url = new URL(window.location.href);
+
         if (value) {
             url.searchParams.set('low_stock', '1');
         } else {
             url.searchParams.delete('low_stock');
         }
+
         window.location.href = url.toString();
     };
 
@@ -210,6 +237,9 @@ export default function ProductsIndex({ products, categories, filters, success, 
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Produk</h1>
                     <p className="text-muted-foreground">Kelola data produk</p>
+                    <span className={`text-xs ${isConnected ? 'text-green-500' : 'text-yellow-500'}`}>
+                        {isConnected ? '🟢 Realtime' : '🟡 Polling (2s)'}
+                    </span>
                 </div>
                 <Button onClick={openCreate}>
                     <Plus className="h-4 w-4 mr-2" />
@@ -270,15 +300,18 @@ export default function ProductsIndex({ products, categories, filters, success, 
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {products.data.length === 0 ? (
+                        {productsData.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-8">
                                     Tidak ada data produk
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            products.data.map((product) => (
-                                <TableRow key={product.id}>
+                            productsData.map((product) => (
+                                <TableRow
+                                    key={product.id}
+                                    className={highlightedProductId === product.id ? 'bg-yellow-100 transition-colors duration-500' : ''}
+                                >
                                     <TableCell className="font-mono text-sm">
                                         {product.sku}
                                     </TableCell>

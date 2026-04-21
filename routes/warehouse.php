@@ -10,6 +10,9 @@ use App\Http\Controllers\Warehouse\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/warehouse/stock/latest', [StockController::class, 'latest']);
+    Route::get('/warehouse/products/stocks', [ProductController::class, 'stocks']);
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::middleware(['role:super_admin,admin'])->group(function () {
@@ -29,6 +32,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
         Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
+        Route::get('/stock/in', [StockController::class, 'indexIn'])->name('stock.in');
+        Route::get('/stock/out', [StockController::class, 'indexOut'])->name('stock.out');
         Route::post('/stock', [StockController::class, 'store'])->name('stock.store');
 
         Route::get('/ai-chat', [ChatController::class, 'index'])->name('ai-chat.index');
@@ -37,6 +42,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['permission:record_stock'])->group(function () {
         Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
+        Route::get('/stock/in', [StockController::class, 'indexIn'])->name('stock.in');
+        Route::get('/stock/out', [StockController::class, 'indexOut'])->name('stock.out');
         Route::post('/stock', [StockController::class, 'store'])->name('stock.store');
     });
 

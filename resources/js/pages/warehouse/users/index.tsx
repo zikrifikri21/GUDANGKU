@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { PageProps, usePage } from '@inertiajs/core';
+import type { PageProps} from '@inertiajs/core';
+import { usePage } from '@inertiajs/core';
 import { useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Pencil, Trash2, Plus, Search } from 'lucide-react';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import { AlertError } from '@/components/alert-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Dialog,
     DialogContent,
@@ -12,6 +14,8 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -27,10 +31,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Plus, Search } from 'lucide-react';
-import { useEffect } from 'react';
-import { AlertError } from '@/components/alert-error';
+import AppLayout from '@/layouts/app-layout';
 
 interface UserData {
     id: number;
@@ -89,6 +90,7 @@ export default function UsersIndex({ users, roles, filters, success, error }: Us
         if (success) {
             setShowSuccess(success);
             const timer = setTimeout(() => setShowSuccess(''), 5000);
+
             return () => clearTimeout(timer);
         }
     }, [success]);
@@ -97,6 +99,7 @@ export default function UsersIndex({ users, roles, filters, success, error }: Us
         if (error) {
             setShowError(error);
             const timer = setTimeout(() => setShowError(''), 5000);
+
             return () => clearTimeout(timer);
         }
     }, [error]);
@@ -137,6 +140,7 @@ export default function UsersIndex({ users, roles, filters, success, error }: Us
             ...data,
             role: roleValue,
         };
+
         if (editingUser) {
             put(`/users/${editingUser.id}`, {
                 data: submitData,

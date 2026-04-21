@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { PageProps } from '@inertiajs/core';
-import { useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import type { PageProps } from '@inertiajs/core';
+import { useForm, usePage, router } from '@inertiajs/react';
+import { ArrowDownToLine, ArrowUpFromLine, Search } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRealtimeStock, StockUpdatedPayload } from '@/hooks/use-realtime-stock';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,8 +22,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ArrowDownToLine, ArrowUpFromLine, Search } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SelectProduct {
@@ -62,60 +62,124 @@ interface StockProps extends PageProps {
         date_from?: string;
         date_to?: string;
     };
+    auth?: {
+        user: {
+            id: number;
+            name: string;
+        };
+    };
+    activeTab?: 'in' | 'out';
     success?: string;
     error?: string;
 }
 
-export default function StockIndex({ products, transactions, filters, success, error }: StockProps) {
-    const [transactionType, setTransactionType] = useState<'in' | 'out'>(
-        (filters.type as 'in' | 'out') || 'in'
-    );
+export default function StockIndex({ products, transactions, filters, auth, activeTab, success, error }: StockProps) {
+    const { props } = usePage();
+    const transactionType = activeTab || 'in';
     const [showSuccess, setShowSuccess] = useState(success || '');
     const [showError, setShowError] = useState(error || '');
     const [selectedProductId, setSelectedProductId] = useState<string>('');
+    const [transactionsData, setTransactionsData] = useState<Transaction[]>(transactions.data);
+    const [productsData, setProductsData] = useState<SelectProduct[]>(products);
+    const [highlightedTransactionId, setHighlightedTransactionId] = useState<number | null>(null);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { lastStockEvent, isConnected } = useRealtimeStock();
+    const authRef = useRef(auth);
+    const transactionTypeRef = useRef<'in' | 'out'>(transactionType);
+
+    useEffect(() => {
+        authRef.current = auth;
+    }, [auth]);
+
+    useEffect(() => {
+        transactionTypeRef.current = transactionType;
+    }, [transactionType]);
+
+    useEffect(() => {
+        setProductsData(products);
+    }, [products]);
+
+    useEffect(() => {
+        if (!lastStockEvent) return;
+
+        // Update stock in products list (for all users including self)
+        setProductsData((prev) =>
+            prev.map((p) =>
+                p.id === lastStockEvent.product_id
+                    ? { ...p, current_stock: lastStockEvent.stock_remaining }
+                    : p
+            )
+        );
+
+        // Prepend to table only for other user's actions
+        if (lastStockEvent.actor_id === authRef.current?.user.id) return;
+        if (lastStockEvent.type !== 'masuk' && lastStockEvent.type !== 'keluar') return;
+
+        const expectedType = transactionTypeRef.current === 'in' ? 'masuk' : 'keluar';
+        if (lastStockEvent.type !== expectedType) return;
+
+        const newTransaction: Transaction = {
+            id: Date.now(),
+            type: lastStockEvent.type === 'masuk' ? 'in' : 'out',
+            quantity: lastStockEvent.quantity,
+            note: null,
+            created_at: lastStockEvent.timestamp,
+            product: {
+                name: lastStockEvent.product_name,
+                sku: '',
+            },
+            user: {
+                name: lastStockEvent.actor_name,
+            },
+        };
+
+        setTransactionsData((prev) => [newTransaction, ...prev]);
+        setHighlightedTransactionId(newTransaction.id);
+        setTimeout(() => setHighlightedTransactionId(null), 1500);
+    }, [lastStockEvent]);
+
+    const { data, setData, post, processing, errors, reset } = useForm({
         product_id: '',
         type: transactionType,
         quantity: 0,
         note: '',
     });
 
+    useEffect(() => {
+        setData('type', transactionType);
+    }, [transactionType, setData]);
+
+    const handleProductChange = (value: string) => {
+        setSelectedProductId(value);
+        setData('product_id', value);
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedProductId) {
-            setShowError('Silakan pilih produk terlebih dahulu');
-            return;
-        }
         
-        const selectedProduct = products.find(
+        const selectedProduct = productsData.find(
             (p) => p.id === Number(selectedProductId)
         );
 
         if (transactionType === 'out' && selectedProduct) {
             if (data.quantity > selectedProduct.current_stock) {
                 setShowError('Jumlah keluar melebihi stok yang tersedia');
+
                 return;
             }
         }
 
-        setData('type', transactionType);
         post('/stock', {
-            data: {
-                product_id: selectedProductId,
-                type: transactionType,
-                quantity: data.quantity,
-                note: data.note,
-            },
             onSuccess: () => {
                 setSelectedProductId('');
-                setData({ product_id: '', type: transactionType, quantity: 0, note: '' });
-                window.location.reload();
+                reset();
+                setShowSuccess(transactionType === 'in' ? 'Stok berhasil ditambahkan' : 'Stok berhasil dikurangi');
+                setTimeout(() => setShowSuccess(''), 3000);
             },
         });
     };
 
-    const selectedProduct = products.find(
+    const selectedProduct = productsData.find(
         (p) => p.id === Number(selectedProductId)
     );
 
@@ -147,21 +211,29 @@ export default function StockIndex({ products, transactions, filters, success, e
                 <p className="text-muted-foreground">
                     Kelola stok masuk dan keluar
                 </p>
+                <span className={`text-xs ${isConnected ? 'text-green-500' : 'text-yellow-500'}`}>
+                    {isConnected ? '🟢 Realtime' : '🟡 Polling (2s)'}
+                </span>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-1">
                     <div className="border rounded-lg p-6 space-y-6">
-                        <Tabs
-                            value={transactionType}
-                            onValueChange={(v) => setTransactionType(v as 'in' | 'out')}
-                        >
+                        <Tabs value={transactionType}>
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="in" className="flex items-center gap-2">
+                                <TabsTrigger
+                                    value="in"
+                                    onClick={() => router.visit('/stock/in')}
+                                    className="flex items-center gap-2"
+                                >
                                     <ArrowDownToLine className="h-4 w-4" />
                                     Masuk
                                 </TabsTrigger>
-                                <TabsTrigger value="out" className="flex items-center gap-2">
+                                <TabsTrigger
+                                    value="out"
+                                    onClick={() => router.visit('/stock/out')}
+                                    className="flex items-center gap-2"
+                                >
                                     <ArrowUpFromLine className="h-4 w-4" />
                                     Keluar
                                 </TabsTrigger>
@@ -173,15 +245,13 @@ export default function StockIndex({ products, transactions, filters, success, e
                                 <Label htmlFor="product_id">Produk</Label>
                                 <Select
                                     value={selectedProductId || undefined}
-                                    onValueChange={(value) =>
-                                        setSelectedProductId(value)
-                                    }
+                                    onValueChange={handleProductChange}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Pilih Produk" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {products.map((product) => (
+                                        {productsData.map((product) => (
                                             <SelectItem
                                                 key={product.id}
                                                 value={String(product.id)}
@@ -309,7 +379,7 @@ export default function StockIndex({ products, transactions, filters, success, e
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {transactions.data.length === 0 ? (
+                                {transactionsData.length === 0 ? (
                                     <TableRow>
                                         <TableCell
                                             colSpan={6}
@@ -319,8 +389,11 @@ export default function StockIndex({ products, transactions, filters, success, e
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    transactions.data.map((transaction) => (
-                                        <TableRow key={transaction.id}>
+                                    transactionsData.map((transaction) => (
+                                        <TableRow
+                                            key={transaction.id}
+                                            className={highlightedTransactionId === transaction.id ? 'bg-yellow-100 transition-colors duration-500' : ''}
+                                        >
                                             <TableCell className="whitespace-nowrap">
                                                 {formatDate(transaction.created_at)}
                                             </TableCell>
@@ -367,8 +440,4 @@ export default function StockIndex({ products, transactions, filters, success, e
     );
 }
 
-StockIndex.layout = (page: React.ReactNode) => (
-    <AppLayout breadcrumbs={[{ title: 'Stok', href: '/stock' }]}>
-        {page}
-    </AppLayout>
-);
+

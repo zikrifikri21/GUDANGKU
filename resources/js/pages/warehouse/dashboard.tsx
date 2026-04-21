@@ -1,5 +1,4 @@
-import { PageProps } from '@inertiajs/core';
-import AppLayout from '@/layouts/app-layout';
+import type { PageProps } from '@inertiajs/core';
 import {
     Package,
     AlertTriangle,
@@ -8,10 +7,9 @@ import {
     ArrowDownToLine,
     ArrowUpFromLine,
     TrendingDown,
-    TrendingUp,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -20,6 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import AppLayout from '@/layouts/app-layout';
 
 interface Stat {
     totalProducts: number;

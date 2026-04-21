@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Warehouse;
 
+use App\Events\LowStockAlert;
+use App\Events\ProductCreated;
+use App\Events\ProductDeleted;
+use App\Events\ProductUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
@@ -57,7 +61,14 @@ class ProductController extends Controller
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        Product::create($validated);
+        $product = Product::create($validated);
+        $product->load(['category', 'supplier']);
+
+        event(new ProductCreated($product));
+
+        if ($product->isLowStock()) {
+            event(new LowStockAlert($product));
+        }
 
         return redirect()->back()->with('success', 'Produk berhasil ditambahkan');
     }
@@ -84,6 +95,13 @@ class ProductController extends Controller
         }
 
         $product->update($validated);
+        $product->load(['category', 'supplier']);
+
+        event(new ProductUpdated($product));
+
+        if ($product->isLowStock()) {
+            event(new LowStockAlert($product));
+        }
 
         return redirect()->back()->with('success', 'Produk berhasil diperbarui');
     }
@@ -94,12 +112,31 @@ class ProductController extends Controller
             return redirect()->back()->with('error', 'Produk tidak dapat dihapus karena memiliki riwayat transaksi');
         }
 
+        $productId = $product->id;
+        $productName = $product->name;
+
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
 
         $product->delete();
 
+        event(new ProductDeleted($productId, $productName));
+
         return redirect()->back()->with('success', 'Produk berhasil dihapus');
+    }
+
+    public function stocks()
+    {
+        $stocks = Product::select('id', 'stock')
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'product_id' => $product->id,
+                    'stock' => $product->stock,
+                ];
+            });
+
+        return response()->json($stocks);
     }
 }

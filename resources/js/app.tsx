@@ -1,6 +1,8 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
+import { SonnerToaster } from '@/hooks/use-reverb';
+import { RealtimeProvider } from '@/components/realtime-provider';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -23,7 +25,14 @@ createInertiaApp({
     },
     strictMode: true,
     withApp(app) {
-        return <TooltipProvider delayDuration={0}>{app}</TooltipProvider>;
+        return (
+            <TooltipProvider delayDuration={0}>
+                <RealtimeProvider>
+                    {app}
+                    <SonnerToaster />
+                </RealtimeProvider>
+            </TooltipProvider>
+        );
     },
     progress: {
         color: '#4B5563',
@@ -31,4 +40,6 @@ createInertiaApp({
 });
 
 // This will set light / dark mode on load...
-initializeTheme();
+if (typeof window !== 'undefined') {
+    initializeTheme();
+}

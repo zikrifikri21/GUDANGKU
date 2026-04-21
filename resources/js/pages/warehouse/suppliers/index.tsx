@@ -1,10 +1,8 @@
-import { useState } from 'react';
-import { PageProps } from '@inertiajs/core';
+import type { PageProps } from '@inertiajs/core';
 import { useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Pencil, Trash2, Plus, Search } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Dialog,
     DialogContent,
@@ -12,6 +10,8 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Table,
     TableBody,
@@ -20,7 +20,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Pencil, Trash2, Plus, Search } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
 
 interface Supplier {
     id: number;
@@ -79,6 +79,7 @@ export default function SuppliersIndex({ suppliers, filters, success, error }: S
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (editingSupplier) {
             put(`/suppliers/${editingSupplier.id}`, {
                 onSuccess: () => {

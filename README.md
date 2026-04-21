@@ -11,11 +11,19 @@ A modern warehouse management application built with Laravel 13 and React (Inert
 - **Low Stock Alerts** - Automatic detection of products below minimum stock level
 - **Authentication** - Secure user authentication with Laravel Fortify
 
+## Realtime Features
+
+- **Live Stock Updates** - Real-time stock transaction notifications across all connected clients
+- **Low Stock Alerts** - Instant browser notifications when product stock falls below minimum
+- **Product Sync** - Live updates when products are created, updated, or deleted
+- **Connection Status** - Visual indicator showing realtime connection state
+
 ## Tech Stack
 
 - **Backend**: Laravel 13 (PHP 8.3+)
 - **Frontend**: React + Inertia.js
 - **Authentication**: Laravel Fortify
+- **Realtime**: Laravel Reverb (WebSocket)
 - **Styling**: Tailwind CSS
 - **Testing**: Pest PHP
 - **Code Quality**: Pint (PHP formatter), ESLint, Prettier
@@ -57,11 +65,38 @@ npm run dev
 ```
 Runs PHP server, queue worker, and Vite dev server concurrently.
 
+### Start Reverb Server (Required for Realtime)
+```bash
+php artisan reverb:start
+```
+
 ### Production Mode
 ```bash
 php artisan serve
 npm run build
+php artisan reverb:start
 ```
+
+## Environment Variables
+
+Make sure these are configured in `.env`:
+
+```env
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=your_app_id
+REVERB_APP_KEY=your_app_key
+REVERB_APP_SECRET=your_app_secret
+REVERB_HOST=localhost
+REVERB_PORT=8080
+REVERB_SCHEME=http
+```
+
+## Browser Notifications
+
+The app requests browser notification permission on first load. Users can:
+- Allow notifications to receive real-time alerts
+- Block notifications to disable browser alerts
+- Still see in-app toast notifications regardless of browser permission
 
 ## Available Commands
 
@@ -69,6 +104,7 @@ npm run build
 |---------|-------------|
 | `composer run setup` | Full setup (install, env, migrate, build) |
 | `npm run dev` | Start development servers |
+| `php artisan reverb:start` | Start Reverb WebSocket server |
 | `npm run test` | Run tests with linting |
 | `npm run lint` | Fix PHP code style |
 | `npm run lint:check` | Check PHP code style |

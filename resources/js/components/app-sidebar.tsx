@@ -79,25 +79,15 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: TrendingUp,
-    },
-];
-
 export function AppSidebar() {
     const { auth } = usePage<{ auth: { user: { role: string } | null } }>().props;
     const userRole = auth?.user?.role as 'super_admin' | 'admin' | 'pegawai' | undefined;
 
     const filteredNavItems = mainNavItems.filter((item) => {
-        if (!item.roles) return true;
-        return item.roles.includes(userRole as 'super_admin' | 'admin' | 'pegawai');
-    });
+        if (!item.roles) {
+return true;
+}
 
-    const filteredFooterItems = footerNavItems.filter((item) => {
-        if (!item.roles) return true;
         return item.roles.includes(userRole as 'super_admin' | 'admin' | 'pegawai');
     });
 
@@ -107,7 +97,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href="/dashboard">
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -124,14 +114,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter
-                    items={filteredFooterItems.map(item => ({
-                        title: item.title,
-                        href: item.href,
-                        icon: item.icon,
-                    }))}
-                    className="mt-auto"
-                />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

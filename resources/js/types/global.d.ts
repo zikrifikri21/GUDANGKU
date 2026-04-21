@@ -1,3 +1,4 @@
+import type Echo from 'laravel-echo';
 import type { Auth } from '@/types/auth';
 
 declare module '@inertiajs/core' {
@@ -9,4 +10,8 @@ declare module '@inertiajs/core' {
             [key: string]: unknown;
         };
     }
+}
+
+interface Window {
+    Echo: Echo;
 }
