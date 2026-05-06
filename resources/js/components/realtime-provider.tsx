@@ -13,12 +13,25 @@ export interface StockUpdatedPayload {
     timestamp: string;
 }
 
+export interface ProductEventPayload {
+    event: 'product.created' | 'product.updated' | 'product.deleted';
+    product_id: number;
+    name?: string;
+    sku?: string;
+    stock?: number;
+    min_stock?: number;
+    actor_id?: number;
+    actor_name?: string;
+    timestamp: string;
+}
+
 interface RealtimeContextValue {
     isConnected: boolean;
     requestPermission: () => Promise<boolean>;
     permission: NotificationPermission;
     isSupported: boolean;
     lastStockEvent: StockUpdatedPayload | null;
+    lastProductEvent: ProductEventPayload | null;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -38,6 +51,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     const [localPermission, setLocalPermission] = useState<NotificationPermission>(permission);
     const [lastStockEvent, setLastStockEvent] = useState<StockUpdatedPayload | null>(null);
+    const [lastProductEvent, setLastProductEvent] = useState<ProductEventPayload | null>(null);
 
     useEffect(() => {
         setLocalPermission(permission);
@@ -84,6 +98,18 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         const title = 'Produk Baru';
         const message = `${name} berhasil ditambahkan`;
 
+        setLastProductEvent({
+            event: 'product.created',
+            product_id: (data as any).product_id,
+            name: (data as any).name,
+            sku: (data as any).sku,
+            stock: (data as any).stock,
+            min_stock: (data as any).min_stock,
+            actor_id: (data as any).actor_id,
+            actor_name: (data as any).actor_name,
+            timestamp: (data as any).timestamp,
+        });
+
         showSonnerToast({ title, message, type: 'success' });
         sendNotification(title, { body: message, tag: 'product' });
     }, [sendNotification]);
@@ -96,6 +122,18 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         const title = 'Produk Diperbarui';
         const message = `${name} telah diperbarui`;
 
+        setLastProductEvent({
+            event: 'product.updated',
+            product_id: (data as any).product_id,
+            name: (data as any).name,
+            sku: (data as any).sku,
+            stock: (data as any).stock,
+            min_stock: (data as any).min_stock,
+            actor_id: (data as any).actor_id,
+            actor_name: (data as any).actor_name,
+            timestamp: (data as any).timestamp,
+        });
+
         showSonnerToast({ title, message, type: 'info' });
         sendNotification(title, { body: message, tag: 'product' });
     }, [sendNotification]);
@@ -107,6 +145,15 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         const name = (data as any).name ?? 'Unknown';
         const title = 'Produk Dihapus';
         const message = `${name} telah dihapus`;
+
+        setLastProductEvent({
+            event: 'product.deleted',
+            product_id: (data as any).product_id,
+            name: (data as any).name,
+            actor_id: (data as any).actor_id,
+            actor_name: (data as any).actor_name,
+            timestamp: (data as any).timestamp,
+        });
 
         showSonnerToast({ title, message, type: 'error' });
         sendNotification(title, { body: message, tag: 'product' });
@@ -133,6 +180,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             permission: localPermission,
             isSupported,
             lastStockEvent,
+            lastProductEvent,
         }}>
             {isSupported && localPermission === 'default' && (
                 <button

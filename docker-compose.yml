@@ -1,0 +1,79 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: gudangku_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/gudangku.conf:/etc/nginx/conf.d/default.conf:ro
+      - public_build:/var/www/html/public:ro
+    depends_on:
+      - app
+    networks:
+      - gudangku_net
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: gudangku_app
+    restart: unless-stopped
+    expose:
+      - "9000"
+      - "8081"
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./storage/app:/var/www/html/storage/app
+      - public_build:/var/www/html/public
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - gudangku_net
+
+  db:
+    image: mysql:8.0
+    container_name: gudangku_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: warehouse
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+      MYSQL_ROOT_PASSWORD: root_secret
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ularavel", "-plaravel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gudangku_net
+
+  # phpmyadmin:
+  #   image: phpmyadmin:latest
+  #   container_name: gudangku_pma
+  #   restart: unless-stopped
+  #   environment:
+  #     PMA_HOST: db
+  #     PMA_USER: laravel
+  #     PMA_PASSWORD: laravel
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - gudangku_net
+
+volumes:
+  db_data:
+  storage_data:
+  public_build:
+
+networks:
+  gudangku_net:
+    driver: bridge

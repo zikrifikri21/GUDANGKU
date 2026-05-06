@@ -108,35 +108,41 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->stockTransactions()->count() > 0) {
+        $transactionCount = $product->stockTransactions()->count();
+        
+        \Log::info('Attempting to delete product', [
+            'product_id' => $product->id,
+            'transaction_count' => $transactionCount,
+        ]);
+
+        if ($transactionCount > 0) {
             return redirect()->back()->with('error', 'Produk tidak dapat dihapus karena memiliki riwayat transaksi');
         }
 
         $productId = $product->id;
         $productName = $product->name;
+        $imagePath = $product->image;
 
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
+        try {
+            $deleted = $product->delete();
+
+            \Log::info('Product delete result', ['deleted' => $deleted, 'product_id' => $productId]);
+
+            if ($deleted && $imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            if ($deleted) {
+                event(new ProductDeleted($productId, $productName));
+            }
+
+            return redirect()->back()->with('success', 'Produk berhasil dihapus');
+        } catch (\Exception $e) {
+            \Log::error('Delete product error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
         }
-
-        $product->delete();
-
-        event(new ProductDeleted($productId, $productName));
-
-        return redirect()->back()->with('success', 'Produk berhasil dihapus');
     }
 
-    public function stocks()
-    {
-        $stocks = Product::select('id', 'stock')
-            ->get()
-            ->map(function ($product) {
-                return [
-                    'product_id' => $product->id,
-                    'stock' => $product->stock,
-                ];
-            });
-
-        return response()->json($stocks);
     }
-}

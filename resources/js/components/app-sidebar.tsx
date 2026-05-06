@@ -23,6 +23,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { WarehouseIcon } from '@/layouts/auth/auth-split-layout';
 
 interface NavItem {
     title: string;
@@ -98,7 +99,20 @@ return true;
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/dashboard">
-                                <AppLogo />
+                                <div
+                                    style={{
+                                        width: '35px',
+                                        height: '35px',
+                                        background: '#e8b84b',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <WarehouseIcon />
+                                </div>
+                                {'Gudangku'}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

@@ -107,11 +107,6 @@ export function useReverb(options: UseReverbOptions) {
                     console.log('✅ ProductDeleted received:', data);
                     onProductDeletedRef.current?.(data);
                     onMessageRef.current?.({ event: 'product-deleted', data });
-                })
-                .listen('counter.incremented', (data: Record<string, unknown>) => {
-                    console.log('✅ CounterIncremented received:', data);
-                    onCounterIncrementedRef.current?.(data);
-                    onMessageRef.current?.({ event: 'counter-incremented', data });
                 });
 
             if (echo.connector?.pusher) {

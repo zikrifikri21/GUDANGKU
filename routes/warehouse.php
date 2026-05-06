@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/warehouse/stock/latest', [StockController::class, 'latest']);
-    Route::get('/warehouse/products/stocks', [ProductController::class, 'stocks']);
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

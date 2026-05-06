@@ -1,8 +1,8 @@
 import type { PageProps } from '@inertiajs/core';
-import { useForm } from '@inertiajs/react';
+import { useForm, router } from '@inertiajs/react';
+import { useRealtime } from '@/components/realtime-provider';
 import { Pencil, Trash2, Plus, Search, AlertTriangle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useRealtimeStock } from '@/hooks/use-realtime-stock';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +29,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import AppLayout from '@/layouts/app-layout';
 
 interface Category {
     id: number;
@@ -85,7 +84,7 @@ export default function ProductsIndex({ products, categories, filters, success, 
     const [productsData, setProductsData] = useState<Product[]>(products.data);
     const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
 
-    const { lastStockEvent, isConnected } = useRealtimeStock();
+    const { lastStockEvent, lastProductEvent, isConnected } = useRealtime();
     const productsRef = useRef<Product[]>(products.data);
 
     useEffect(() => {
@@ -106,6 +105,33 @@ export default function ProductsIndex({ products, categories, filters, success, 
         setHighlightedProductId(lastStockEvent.product_id);
         setTimeout(() => setHighlightedProductId(null), 1500);
     }, [lastStockEvent]);
+
+    useEffect(() => {
+        if (!lastProductEvent) return;
+
+        if (lastProductEvent.event === 'product.deleted') {
+            setProductsData((prev) =>
+                prev.filter((p) => p.id !== lastProductEvent.product_id)
+            );
+        }
+
+        if (lastProductEvent.event === 'product.updated') {
+            setProductsData((prev) =>
+                prev.map((p) =>
+                    p.id === lastProductEvent.product_id
+                        ? {
+                              ...p,
+                              name: lastProductEvent.name ?? p.name,
+                              stock: lastProductEvent.stock ?? p.stock,
+                              min_stock: lastProductEvent.min_stock ?? p.min_stock,
+                          }
+                        : p
+                )
+            );
+            setHighlightedProductId(lastProductEvent.product_id);
+            setTimeout(() => setHighlightedProductId(null), 1500);
+        }
+    }, [lastProductEvent]);
 
     const { data, setData, post, put, delete: destroy, processing, errors } = useForm({
         category_id: '',
@@ -195,9 +221,19 @@ export default function ProductsIndex({ products, categories, filters, success, 
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-            destroy(`/products/${id}`);
-        }
+        if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) return;
+
+        destroy(`/products/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setProductsData((prev) => prev.filter((p) => p.id !== id));
+            },
+            onError: (errors) => {
+                const message = Object.values(errors).join('\n');
+                setShowError(message);
+                setTimeout(() => setShowError(''), 5000);
+            },
+        });
     };
 
     const toggleLowStock = (value: boolean) => {
@@ -528,8 +564,4 @@ export default function ProductsIndex({ products, categories, filters, success, 
     );
 }
 
-ProductsIndex.layout = (page: React.ReactNode) => (
-    <AppLayout breadcrumbs={[{ title: 'Produk', href: '/products' }]}>
-        {page}
-    </AppLayout>
-);
+

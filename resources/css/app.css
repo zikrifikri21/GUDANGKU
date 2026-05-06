@@ -9,9 +9,11 @@
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'DM Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+
+    --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -59,79 +61,150 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    /* ── Gudangku brand tokens ── */
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+    --color-brand-muted: var(--brand-muted);
+    --color-surface-dark: var(--surface-dark);
+    --color-surface-dark-foreground: var(--surface-dark-foreground);
 }
 
+/* ─────────────────────────────────────────────────────────
+   Google Fonts — Syne (display) + DM Sans (body)
+   ───────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap');
+
+/* ─────────────────────────────────────────────────────────
+   LIGHT MODE
+   Primary  = hitam arang  #1a1a18  → oklch(0.13 0.006 106)
+   Accent   = emas Gudangku #e8b84b → oklch(0.78 0.148 85)
+   ───────────────────────────────────────────────────────── */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
+    /* Base */
+    --background:             oklch(1 0 0);           /* putih */
+    --foreground:             oklch(0.13 0.006 106);   /* #1a1a18 hitam arang */
+
+    /* Card & Popover */
+    --card:                   oklch(1 0 0);
+    --card-foreground:        oklch(0.13 0.006 106);
+    --popover:                oklch(1 0 0);
+    --popover-foreground:     oklch(0.13 0.006 106);
+
+    /* Primary — hitam arang (tombol, link aktif) */
+    --primary:                oklch(0.13 0.006 106);   /* #1a1a18 */
+    --primary-foreground:     oklch(0.97 0.016 85);    /* #f5f2eb krem terang */
+
+    /* Secondary — abu hangat */
+    --secondary:              oklch(0.95 0.004 85);    /* #f0ede6 */
+    --secondary-foreground:   oklch(0.13 0.006 106);
+
+    /* Muted */
+    --muted:                  oklch(0.95 0.004 85);
+    --muted-foreground:       oklch(0.52 0.008 85);    /* abu sedang */
+
+    /* Accent — emas Gudangku */
+    --accent:                 oklch(0.78 0.148 85);    /* #e8b84b */
+    --accent-foreground:      oklch(0.13 0.006 106);   /* teks gelap di atas emas */
+
+    /* Destructive */
+    --destructive:            oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
+
+    /* Border & Input */
+    --border:                 oklch(0.88 0.006 85);    /* abu hangat tipis */
+    --input:                  oklch(0.88 0.006 85);
+    --ring:                   oklch(0.78 0.148 85);    /* focus ring = emas */
+
+    /* Radius */
+    --radius:                 0.625rem;
+
+    /* Charts — pakai palet hangat selaras brand */
+    --chart-1:                oklch(0.78 0.148 85);    /* emas brand */
+    --chart-2:                oklch(0.62 0.13  55);    /* oranye tua */
+    --chart-3:                oklch(0.50 0.09  200);   /* teal */
+    --chart-4:                oklch(0.70 0.12  145);   /* hijau sage */
+    --chart-5:                oklch(0.55 0.10  30);    /* coklat bata */
+
+    /* Sidebar — gelap ala sidebar Gudangku */
+    --sidebar:                oklch(0.13 0.006 106);   /* #1a1a18 */
+    --sidebar-foreground:     oklch(0.97 0.016 85);    /* #f5f2eb */
+    --sidebar-primary:        oklch(0.78 0.148 85);    /* emas */
+    --sidebar-primary-foreground: oklch(0.13 0.006 106);
+    --sidebar-accent:         oklch(0.20 0.006 106);   /* hover gelap */
+    --sidebar-accent-foreground: oklch(0.97 0.016 85);
+    --sidebar-border:         oklch(0.22 0.006 106);   /* border sidebar */
+    --sidebar-ring:           oklch(0.78 0.148 85);
+
+    /* Brand custom tokens */
+    --brand:                  oklch(0.78 0.148 85);    /* #e8b84b */
+    --brand-foreground:       oklch(0.13 0.006 106);
+    --brand-muted:            oklch(0.96 0.040 85);    /* #fef7e8 badge bg */
+    --surface-dark:           oklch(0.13 0.006 106);   /* #1a1a18 */
+    --surface-dark-foreground: oklch(0.97 0.016 85);  /* #f5f2eb */
 }
 
+/* ─────────────────────────────────────────────────────────
+   DARK MODE
+   Background = sangat gelap (lebih gelap dari sidebar)
+   Primary tetap terang agar kontras
+   Accent = emas sedikit lebih redup agar tidak silau
+   ───────────────────────────────────────────────────────── */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
+    --background:             oklch(0.10 0.006 106);   /* sangat gelap */
+    --foreground:             oklch(0.97 0.016 85);    /* krem terang */
+
+    --card:                   oklch(0.13 0.006 106);
+    --card-foreground:        oklch(0.97 0.016 85);
+    --popover:                oklch(0.13 0.006 106);
+    --popover-foreground:     oklch(0.97 0.016 85);
+
+    /* Primary — terang agar bisa jadi tombol terang di bg gelap */
+    --primary:                oklch(0.97 0.016 85);    /* krem */
+    --primary-foreground:     oklch(0.13 0.006 106);   /* gelap */
+
+    --secondary:              oklch(0.20 0.006 106);
+    --secondary-foreground:   oklch(0.97 0.016 85);
+
+    --muted:                  oklch(0.20 0.006 106);
+    --muted-foreground:       oklch(0.65 0.008 85);
+
+    /* Accent = emas sedikit lebih redup di dark */
+    --accent:                 oklch(0.72 0.140 85);
+    --accent-foreground:      oklch(0.10 0.006 106);
+
+    --destructive:            oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+
+    --border:                 oklch(0.22 0.006 106);
+    --input:                  oklch(0.22 0.006 106);
+    --ring:                   oklch(0.72 0.140 85);    /* focus ring = emas redup */
+
+    --chart-1:                oklch(0.72 0.140 85);
+    --chart-2:                oklch(0.60 0.12  55);
+    --chart-3:                oklch(0.55 0.10  200);
+    --chart-4:                oklch(0.65 0.11  145);
+    --chart-5:                oklch(0.52 0.09  30);
+
+    --sidebar:                oklch(0.11 0.006 106);
+    --sidebar-foreground:     oklch(0.97 0.016 85);
+    --sidebar-primary:        oklch(0.72 0.140 85);
+    --sidebar-primary-foreground: oklch(0.10 0.006 106);
+    --sidebar-accent:         oklch(0.18 0.006 106);
+    --sidebar-accent-foreground: oklch(0.97 0.016 85);
+    --sidebar-border:         oklch(0.20 0.006 106);
+    --sidebar-ring:           oklch(0.72 0.140 85);
+
+    --brand:                  oklch(0.72 0.140 85);
+    --brand-foreground:       oklch(0.10 0.006 106);
+    --brand-muted:            oklch(0.18 0.040 85);
+    --surface-dark:           oklch(0.13 0.006 106);
+    --surface-dark-foreground: oklch(0.97 0.016 85);
 }
 
+/* ─────────────────────────────────────────────────────────
+   BASE LAYER
+   ───────────────────────────────────────────────────────── */
 @layer base {
     * {
         @apply border-border;
@@ -139,5 +212,74 @@
 
     body {
         @apply bg-background text-foreground;
+        font-feature-settings: 'cv11', 'ss01';
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Heading pakai Syne */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Syne', ui-sans-serif, system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    /* Focus ring = warna emas */
+    :focus-visible {
+        outline: 2px solid oklch(0.78 0.148 85);
+        outline-offset: 2px;
+    }
+
+    /* Scrollbar tipis selaras tema */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: oklch(0.78 0.148 85 / 0.4);
+        border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: oklch(0.78 0.148 85 / 0.7);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────
+   UTILITY — Gudangku brand helpers
+   Bisa dipakai di seluruh aplikasi sebagai className
+   ───────────────────────────────────────────────────────── */
+@layer utilities {
+    /* Teks emas brand */
+    .text-brand {
+        color: var(--brand);
+    }
+
+    /* Background gelap sidebar */
+    .bg-surface-dark {
+        background-color: var(--surface-dark);
+        color: var(--surface-dark-foreground);
+    }
+
+    /* Badge "Sistem Aktif" */
+    .badge-brand {
+        background-color: var(--brand-muted);
+        color: oklch(0.45 0.10 85);   /* #a06800 ekuivalen */
+        font-size: 0.625rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Font display helper */
+    .font-display {
+        font-family: 'Syne', ui-sans-serif, system-ui, sans-serif;
     }
 }
